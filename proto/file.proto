@@ -18,7 +18,16 @@ message DownloadResponse {
     bytes data = 1;
 }
 
+message ApploadRequest {
+    bytes data = 1;
+}
+
+message ApploadResponse {
+    int32 size = 1;
+}
+
 service FileService {
     rpc ListFiles(ListFilesRequest) returns (ListFilesResponse);
     rpc Download(DownloadRequest) returns (stream DownloadResponse);
+    rpc Appload(stream ApploadRequest) returns (ApploadResponse);
 };
