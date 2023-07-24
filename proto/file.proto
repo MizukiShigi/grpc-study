@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package file;
+
+option go_package = "./pb";
+
+message ListFilesRequest {};
+
+message ListFilesResponse {
+    repeated string filenames = 1;
+};
+
+message DownloadRequest {
+    string filename = 1;
+}
+
+message DownloadResponse {
+    bytes data = 1;
+}
+
+service FileService {
+    rpc ListFiles(ListFilesRequest) returns (ListFilesResponse);
+    rpc Download(DownloadRequest) returns (stream DownloadResponse);
+};
