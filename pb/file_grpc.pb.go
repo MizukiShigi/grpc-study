@@ -24,7 +24,7 @@ const _ = grpc.SupportPackageIsVersion7
 type FileServiceClient interface {
 	ListFiles(ctx context.Context, in *ListFilesRequest, opts ...grpc.CallOption) (*ListFilesResponse, error)
 	Download(ctx context.Context, in *DownloadRequest, opts ...grpc.CallOption) (FileService_DownloadClient, error)
-	Appload(ctx context.Context, opts ...grpc.CallOption) (FileService_ApploadClient, error)
+	Upload(ctx context.Context, opts ...grpc.CallOption) (FileService_UploadClient, error)
 }
 
 type fileServiceClient struct {
@@ -76,34 +76,34 @@ func (x *fileServiceDownloadClient) Recv() (*DownloadResponse, error) {
 	return m, nil
 }
 
-func (c *fileServiceClient) Appload(ctx context.Context, opts ...grpc.CallOption) (FileService_ApploadClient, error) {
-	stream, err := c.cc.NewStream(ctx, &FileService_ServiceDesc.Streams[1], "/file.FileService/Appload", opts...)
+func (c *fileServiceClient) Upload(ctx context.Context, opts ...grpc.CallOption) (FileService_UploadClient, error) {
+	stream, err := c.cc.NewStream(ctx, &FileService_ServiceDesc.Streams[1], "/file.FileService/Upload", opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &fileServiceApploadClient{stream}
+	x := &fileServiceUploadClient{stream}
 	return x, nil
 }
 
-type FileService_ApploadClient interface {
-	Send(*ApploadRequest) error
-	CloseAndRecv() (*ApploadResponse, error)
+type FileService_UploadClient interface {
+	Send(*UploadRequest) error
+	CloseAndRecv() (*UploadResponse, error)
 	grpc.ClientStream
 }
 
-type fileServiceApploadClient struct {
+type fileServiceUploadClient struct {
 	grpc.ClientStream
 }
 
-func (x *fileServiceApploadClient) Send(m *ApploadRequest) error {
+func (x *fileServiceUploadClient) Send(m *UploadRequest) error {
 	return x.ClientStream.SendMsg(m)
 }
 
-func (x *fileServiceApploadClient) CloseAndRecv() (*ApploadResponse, error) {
+func (x *fileServiceUploadClient) CloseAndRecv() (*UploadResponse, error) {
 	if err := x.ClientStream.CloseSend(); err != nil {
 		return nil, err
 	}
-	m := new(ApploadResponse)
+	m := new(UploadResponse)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -116,7 +116,7 @@ func (x *fileServiceApploadClient) CloseAndRecv() (*ApploadResponse, error) {
 type FileServiceServer interface {
 	ListFiles(context.Context, *ListFilesRequest) (*ListFilesResponse, error)
 	Download(*DownloadRequest, FileService_DownloadServer) error
-	Appload(FileService_ApploadServer) error
+	Upload(FileService_UploadServer) error
 	mustEmbedUnimplementedFileServiceServer()
 }
 
@@ -130,8 +130,8 @@ func (UnimplementedFileServiceServer) ListFiles(context.Context, *ListFilesReque
 func (UnimplementedFileServiceServer) Download(*DownloadRequest, FileService_DownloadServer) error {
 	return status.Errorf(codes.Unimplemented, "method Download not implemented")
 }
-func (UnimplementedFileServiceServer) Appload(FileService_ApploadServer) error {
-	return status.Errorf(codes.Unimplemented, "method Appload not implemented")
+func (UnimplementedFileServiceServer) Upload(FileService_UploadServer) error {
+	return status.Errorf(codes.Unimplemented, "method Upload not implemented")
 }
 func (UnimplementedFileServiceServer) mustEmbedUnimplementedFileServiceServer() {}
 
@@ -185,26 +185,26 @@ func (x *fileServiceDownloadServer) Send(m *DownloadResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func _FileService_Appload_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(FileServiceServer).Appload(&fileServiceApploadServer{stream})
+func _FileService_Upload_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(FileServiceServer).Upload(&fileServiceUploadServer{stream})
 }
 
-type FileService_ApploadServer interface {
-	SendAndClose(*ApploadResponse) error
-	Recv() (*ApploadRequest, error)
+type FileService_UploadServer interface {
+	SendAndClose(*UploadResponse) error
+	Recv() (*UploadRequest, error)
 	grpc.ServerStream
 }
 
-type fileServiceApploadServer struct {
+type fileServiceUploadServer struct {
 	grpc.ServerStream
 }
 
-func (x *fileServiceApploadServer) SendAndClose(m *ApploadResponse) error {
+func (x *fileServiceUploadServer) SendAndClose(m *UploadResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func (x *fileServiceApploadServer) Recv() (*ApploadRequest, error) {
-	m := new(ApploadRequest)
+func (x *fileServiceUploadServer) Recv() (*UploadRequest, error) {
+	m := new(UploadRequest)
 	if err := x.ServerStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -230,8 +230,8 @@ var FileService_ServiceDesc = grpc.ServiceDesc{
 			ServerStreams: true,
 		},
 		{
-			StreamName:    "Appload",
-			Handler:       _FileService_Appload_Handler,
+			StreamName:    "Upload",
+			Handler:       _FileService_Upload_Handler,
 			ClientStreams: true,
 		},
 	},

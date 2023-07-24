@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"grpc-lesson/pb"
@@ -10,11 +11,10 @@ import (
 	"net"
 	"os"
 	"time"
+	"grpc-lesson/util"
 
 	"google.golang.org/grpc"
 )
-
-const storagePath = "/Users/shifi/dev/grpc-lesson/storage"
 
 type server struct {
 	pb.UnimplementedFileServiceServer
@@ -23,7 +23,7 @@ type server struct {
 func (*server) ListFiles(ctx context.Context, req *pb.ListFilesRequest) (*pb.ListFilesResponse, error) {
 	fmt.Println("ListFiles was invoked")
 
-	paths, err := ioutil.ReadDir(storagePath)
+	paths, err := ioutil.ReadDir(util.StragePath)
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +47,7 @@ func (*server) Download(req *pb.DownloadRequest, stream pb.FileService_DownloadS
 	fmt.Println("Download was invoked")
 
 	filename := req.GetFilename()
-	path := storagePath + filename
+	path := util.StragePath + filename
 
 	file, err := os.Open(path)
 	if err != nil {
@@ -73,6 +73,28 @@ func (*server) Download(req *pb.DownloadRequest, stream pb.FileService_DownloadS
 		time.Sleep(1 * time.Second)
 	}
 	return nil
+}
+
+func (*server) Upload(stream pb.FileService_UploadServer) error {
+	fmt.Println("Upload was invoked")
+
+	var buf bytes.Buffer
+
+	for {
+		req, err := stream.Recv()
+		if err == io.EOF {
+			res := &pb.UploadResponse{Size: int32(buf.Len())}
+			return stream.SendAndClose(res)
+		}
+		if err != nil {
+			return err
+		}
+
+		data := req.GetData()
+		log.Printf("Recieved data(bytes) : %v", data)
+		log.Printf("Recieved data(string) : %v", string(data))
+		buf.Write(data)
+	}
 }
 
 func main() {
