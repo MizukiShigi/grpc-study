@@ -5,13 +5,13 @@ import (
 	"context"
 	"fmt"
 	"grpc-lesson/pb"
+	"grpc-lesson/util"
 	"io"
 	"io/ioutil"
 	"log"
 	"net"
 	"os"
 	"time"
-	"grpc-lesson/util"
 
 	"google.golang.org/grpc"
 )
@@ -94,6 +94,33 @@ func (*server) Upload(stream pb.FileService_UploadServer) error {
 		log.Printf("Recieved data(bytes) : %v", data)
 		log.Printf("Recieved data(string) : %v", string(data))
 		buf.Write(data)
+	}
+}
+
+func (*server) UploadAndNotifyProgress(stream pb.FileService_UploadAndNotifyProgressServer) error {
+	fmt.Println("Upload and notify progress was invoked")
+	size := 0
+
+	for {
+		req, err := stream.Recv()
+		if err == io.EOF {
+			return nil
+		}
+		if err != nil {
+			return err
+		}
+
+		data := req.GetData()
+		log.Printf("Recieved data %v", data)
+		size += len(data)
+
+		res := &pb.UploadAndNotifyProgressResponse{
+			Msg: fmt.Sprintf("Recieved %vbytes", size),
+		}
+		err = stream.Send(res)
+		if err != nil {
+			return err
+		}
 	}
 }
 
