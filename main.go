@@ -11,7 +11,9 @@ import (
 	"time"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/status"
 )
 
 func main() {
@@ -24,14 +26,14 @@ func main() {
 
 	client := pb.NewFileServiceClient(conn)
 
-	callListFiles(client)
-	// callDownload(client)
+	// callListFiles(client)
+	callDownload(client)
 	// CallUpload(client)
 	// CallUploadAndNotifyProgress(client)
 }
 
 func callListFiles(client pb.FileServiceClient) {
-	md := metadata.New(map[string]string{"authorization": "Bearer test-token"})
+	md := metadata.New(map[string]string{"authorization": "Bearer est-token"})
 	ctx := metadata.NewOutgoingContext(context.Background(), md)
 	res, err := client.ListFiles(ctx, &pb.ListFilesRequest{})
 	if err != nil {
@@ -54,7 +56,16 @@ func callDownload(client pb.FileServiceClient) {
 			break
 		}
 		if err != nil {
-			log.Fatalln(err)
+			resErr, ok := status.FromError(err)
+			if ok {
+				if resErr.Code() == codes.NotFound {
+					log.Fatalf("Error code %v, Error message %v", resErr.Code(), resErr.Message())
+				} else {
+					log.Fatalln("Unknown error")
+				}
+			} else {
+				log.Fatalln(err)
+			}
 		}
 
 		log.Printf("Response from donwload %v", res.GetData())
