@@ -1,7 +1,6 @@
 package main
 
 import (
-	"time"
 	"context"
 	"fmt"
 	"grpc-lesson/pb"
@@ -9,8 +8,10 @@ import (
 	"io"
 	"log"
 	"os"
+	"time"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 )
 
 func main() {
@@ -30,7 +31,9 @@ func main() {
 }
 
 func callListFiles(client pb.FileServiceClient) {
-	res, err := client.ListFiles(context.Background(), &pb.ListFilesRequest{})
+	md := metadata.New(map[string]string{"authorization": "Bearer test-token"})
+	ctx := metadata.NewOutgoingContext(context.Background(), md)
+	res, err := client.ListFiles(ctx, &pb.ListFilesRequest{})
 	if err != nil {
 		log.Fatalf("Failed to request %v", err)
 	}
@@ -90,7 +93,7 @@ func CallUpload(client pb.FileServiceClient) {
 			log.Fatalln(sendErr)
 		}
 
-		time.Sleep(1 *time.Second)
+		time.Sleep(1 * time.Second)
 	}
 
 	res, err := stream.CloseAndRecv()
